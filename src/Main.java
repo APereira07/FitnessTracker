@@ -6,16 +6,22 @@ import java.io.*;
 // This includes data structures like List, ArrayList, Scanner, and utility classes like Collections, etc.
 import java.util.*;
 
-
 /**
  * Main class for the Fitness Tracker application.
  * Handles the user interface, CRUD operations, and input validation.
+ *
+ * To launch the GUI version, uncomment the GUI launch code in main method
+ * and comment out the console menu code.
  */
 public class Main {
     private static final Scanner scanner = new Scanner(System.in);
     private static final List<FitnessRecord> records = new ArrayList<>();
 
     public static void main(String[] args) {
+        // Uncomment this to launch the GUI version instead of console
+         javax.swing.SwingUtilities.invokeLater(() -> new FitnessTrackerGUI());
+
+        // Console-based menu loop
         boolean exit = false;
         while (!exit) {
             printMenu(); // Display menu
@@ -34,7 +40,7 @@ public class Main {
         System.out.println("Exiting... Goodbye!");
     }
 
-    // Display the application menu
+    // Display the application menu options to the user
     private static void printMenu() {
         System.out.println("""
             --- Fitness Tracker Menu ---
@@ -49,7 +55,7 @@ public class Main {
         """);
     }
 
-    // Load fitness records from a text file
+    // Load fitness records from a text file entered by the user
     private static void loadFromFile() {
         System.out.print("Enter filename to load: ");
         String filename = scanner.nextLine().trim();
@@ -77,7 +83,7 @@ public class Main {
         }
     }
 
-    // Print all fitness records to the console
+    // Print all fitness records to the console for user review
     private static void displayRecords() {
         if (records.isEmpty()) {
             System.out.println("No records to display.");
@@ -88,7 +94,7 @@ public class Main {
         }
     }
 
-    // Add a new fitness record with input validation
+    // Add a new fitness record with validated user input
     private static void addRecord() {
         int id = getValidatedInt("Enter ID: ");
         String name = getValidatedString("Enter full name: ");
@@ -102,7 +108,7 @@ public class Main {
         System.out.println("Record added:\n" + newRecord);
     }
 
-    // Remove a record by its ID
+    // Remove a fitness record by its unique ID
     private static void removeRecord() {
         int id = getValidatedInt("Enter ID to remove: ");
         FitnessRecord recordToRemove = records.stream()
@@ -117,7 +123,7 @@ public class Main {
         }
     }
 
-    // Update all fields of a selected record
+    // Update all fields of an existing record identified by ID
     private static void updateRecord() {
         int id = getValidatedInt("Enter ID to update: ");
         for (FitnessRecord r : records) {
@@ -139,7 +145,7 @@ public class Main {
         System.out.println("Record not found.");
     }
 
-    // Custom feature: Calculate and print the average number of steps
+    // Custom feature: Calculate and print average steps from all records
     private static void customFeature() {
         if (records.isEmpty()) {
             System.out.println("No records to calculate.");
@@ -149,7 +155,7 @@ public class Main {
         System.out.printf("Average Steps Today: %.2f%n", avgSteps);
     }
 
-    // Save all records to a text file
+    // Save all fitness records to a text file with user-specified filename
     private static void saveToFile() {
         System.out.print("Enter filename to save: ");
         String filename = scanner.nextLine().trim();
@@ -165,12 +171,12 @@ public class Main {
         }
     }
 
-    // Validates integer input from user
+    // Validates integer input from the user with no range limit
     private static int getValidatedInt(String prompt) {
         return getValidatedInt(prompt, Integer.MIN_VALUE, Integer.MAX_VALUE);
     }
 
-    // Validates integer input within a range
+    // Validates integer input from the user within a specific range
     private static int getValidatedInt(String prompt, int min, int max) {
         while (true) {
             System.out.print(prompt);
@@ -184,7 +190,7 @@ public class Main {
         }
     }
 
-    // Validates double input from user
+    // Validates double (decimal) input from the user
     private static double getValidatedDouble(String prompt) {
         while (true) {
             System.out.print(prompt);
@@ -196,7 +202,7 @@ public class Main {
         }
     }
 
-    // Validates that user enters a non-empty string
+    // Validates that user inputs a non-empty string
     private static String getValidatedString(String prompt) {
         while (true) {
             System.out.print(prompt);
