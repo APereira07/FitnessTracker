@@ -1,100 +1,84 @@
-// Import all classes from the java.io package.
-// This includes classes for file handling, such as BufferedReader, FileReader, PrintWriter, etc.
-import java.io.*;
-
-// Import all classes from the java.util package.
-// This includes data structures like List, ArrayList, Scanner, and utility classes like Collections, etc.
 import java.util.*;
+import javax.swing.*;
 
 /**
  * Main class for the Fitness Tracker application.
- * Handles the user interface, CRUD operations, and input validation.
- *
- * To launch the GUI version, uncomment the GUI launch code in main method
- * and comment out the console menu code.
+ * Users can interact with the app through a console-based menu or a GUI.
+ * This version uses an SQLite database to store and retrieve fitness records
+ * via the FitnessDatabaseManager class.
  */
 public class Main {
     private static final Scanner scanner = new Scanner(System.in);
-    private static final List<FitnessRecord> records = new ArrayList<>();
+    private static final FitnessDatabaseManager dbManager = new FitnessDatabaseManager("fitness.db");
 
     public static void main(String[] args) {
-        // Uncomment this to launch the GUI version instead of console
-         javax.swing.SwingUtilities.invokeLater(() -> new FitnessTrackerGUI());
+        // Uncomment this line to launch GUI instead of console
+        // SwingUtilities.invokeLater(FitnessTrackerGUI::new);
 
-        // Console-based menu loop
         boolean exit = false;
         while (!exit) {
             printMenu(); // Display menu
             int choice = getValidatedInt("Enter your choice: ", 1, 8);
             switch (choice) {
-                case 1 -> loadFromFile();       // Load data
-                case 2 -> displayRecords();     // Display data
-                case 3 -> addRecord();          // Create data
-                case 4 -> removeRecord();       // Remove data
-                case 5 -> updateRecord();       // Update data
-                case 6 -> customFeature();      // Custom feature
-                case 7 -> saveToFile();         // Save data
-                case 8 -> exit = true;          // Exit app
+                case 1 -> loadFromDatabase();
+                case 2 -> displayRecords();
+                case 3 -> addRecord();
+                case 4 -> removeRecord();
+                case 5 -> updateRecord();
+                case 6 -> customFeature();
+                case 7 -> saveSampleRecords();
+                case 8 -> exit = true;
+                default -> System.out.println("Invalid choice."); // Just a safeguard
             }
         }
         System.out.println("Exiting... Goodbye!");
     }
 
-    // Display the application menu options to the user
+    /**
+     * Prints the main menu options to the user.
+     */
     private static void printMenu() {
         System.out.println("""
-            --- Fitness Tracker Menu ---
-            1. Load Data from File
+            --- Fitness Tracker Menu (Database Mode) ---
+            1. Load Records from Database
             2. Display All Records
             3. Add New Record
-            4. Remove Record
-            5. Update Record
+            4. Remove Record by ID
+            5. Update Record by ID
             6. Calculate Average Steps (Custom Feature)
-            7. Save Records to File
+            7. Save Sample Records to DB
             8. Exit
-        """);
+            """);
     }
 
-    // Load fitness records from a text file entered by the user
-    private static void loadFromFile() {
-        System.out.print("Enter filename to load: ");
-        String filename = scanner.nextLine().trim();
-        if (filename.isEmpty()) {
-            System.out.println("Filename cannot be empty.");
-            return;
-        }
-        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
-            records.clear();
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(",");
-                records.add(new FitnessRecord(
-                        Integer.parseInt(parts[0]),
-                        parts[1],
-                        Integer.parseInt(parts[2]),
-                        Double.parseDouble(parts[3]),
-                        Integer.parseInt(parts[4]),
-                        Double.parseDouble(parts[5])
-                ));
-            }
-            System.out.println("Data loaded successfully.");
-        } catch (IOException | NumberFormatException e) {
-            System.out.println("Error reading file: " + e.getMessage());
-        }
+    /**
+     * Simulates loading data from the database.
+     * Actual loading happens in displayRecords method when fetching live.
+     */
+    private static void loadFromDatabase() {
+        System.out.println("Attempting to load data from database...");
+        List<FitnessRecord> records = dbManager.getAllRecords();
+        System.out.println(records.size() + " records loaded.");
     }
 
-    // Print all fitness records to the console for user review
+    /**
+     * Fetches all records from the database and prints them.
+     */
     private static void displayRecords() {
+        List<FitnessRecord> records = dbManager.getAllRecords();
         if (records.isEmpty()) {
-            System.out.println("No records to display.");
+            System.out.println("No records found in the database.");
         } else {
-            for (FitnessRecord record : records) {
-                System.out.println(record);
+            System.out.println("Displaying all records:");
+            for (FitnessRecord r : records) {
+                System.out.println(r);
             }
         }
     }
 
-    // Add a new fitness record with validated user input
+    /**
+     * Prompts user for input and inserts a new record into the database.
+     */
     private static void addRecord() {
         int id = getValidatedInt("Enter ID: ");
         String name = getValidatedString("Enter full name: ");
@@ -104,85 +88,64 @@ public class Main {
         double calories = getValidatedDouble("Enter calories burned: ");
 
         FitnessRecord newRecord = new FitnessRecord(id, name, age, weight, steps, calories);
-        records.add(newRecord);
-        System.out.println("Record added:\n" + newRecord);
+        dbManager.insertRecord(newRecord);
+        System.out.println("Record added to database.");
     }
 
-    // Remove a fitness record by its unique ID
+    /**
+     * Prompts user for ID and deletes that record from the database.
+     */
     private static void removeRecord() {
-        int id = getValidatedInt("Enter ID to remove: ");
-        FitnessRecord recordToRemove = records.stream()
-                .filter(r -> r.getId() == id)
-                .findFirst()
-                .orElse(null);
-        if (recordToRemove != null) {
-            records.remove(recordToRemove);
-            System.out.println("Record removed.");
-        } else {
-            System.out.println("Record not found.");
-        }
+        int id = getValidatedInt("Enter ID to delete: ");
+        dbManager.deleteRecord(id);
+        System.out.println("Record deleted from database.");
     }
 
-    // Update all fields of an existing record identified by ID
+    /**
+     * Prompts user for updated info and updates the record in the database.
+     */
     private static void updateRecord() {
         int id = getValidatedInt("Enter ID to update: ");
-        for (FitnessRecord r : records) {
-            if (r.getId() == id) {
-                String newName = getValidatedString("Enter new name: ");
-                int newAge = getValidatedInt("Enter new age: ");
-                double newWeight = getValidatedDouble("Enter new weight: ");
-                int newSteps = getValidatedInt("Enter new steps: ");
-                double newCalories = getValidatedDouble("Enter new calories: ");
-                r.setFullName(newName);
-                r.setAge(newAge);
-                r.setWeight(newWeight);
-                r.setStepsToday(newSteps);
-                r.setCaloriesBurned(newCalories);
-                System.out.println("Record updated:\n" + r);
-                return;
-            }
-        }
-        System.out.println("Record not found.");
+        String name = getValidatedString("Enter new name: ");
+        int age = getValidatedInt("Enter new age: ");
+        double weight = getValidatedDouble("Enter new weight (lbs): ");
+        int steps = getValidatedInt("Enter new steps: ");
+        double calories = getValidatedDouble("Enter new calories: ");
+
+        FitnessRecord updatedRecord = new FitnessRecord(id, name, age, weight, steps, calories);
+        dbManager.updateRecord(updatedRecord);
+        System.out.println("Record updated in database.");
     }
 
-    // Custom feature: Calculate and print average steps from all records
+    /**
+     * Calculates and displays the average steps from all records.
+     */
     private static void customFeature() {
-        if (records.isEmpty()) {
-            System.out.println("No records to calculate.");
-            return;
-        }
-        double avgSteps = records.stream().mapToInt(FitnessRecord::getStepsToday).average().orElse(0);
+        double avgSteps = dbManager.calculateAverageSteps();
         System.out.printf("Average Steps Today: %.2f%n", avgSteps);
     }
 
-    // Save all fitness records to a text file with user-specified filename
-    private static void saveToFile() {
-        System.out.print("Enter filename to save: ");
-        String filename = scanner.nextLine().trim();
-        try (PrintWriter writer = new PrintWriter(filename)) {
-            for (FitnessRecord r : records) {
-                writer.printf("%d,%s,%d,%.1f,%d,%.2f%n",
-                        r.getId(), r.getFullName(), r.getAge(), r.getWeight(),
-                        r.getStepsToday(), r.getCaloriesBurned());
-            }
-            System.out.println("Data saved successfully.");
-        } catch (IOException e) {
-            System.out.println("Error saving file: " + e.getMessage());
-        }
+    /**
+     * Inserts a couple of sample fitness records into the database for testing.
+     */
+    private static void saveSampleRecords() {
+        dbManager.insertRecord(new FitnessRecord(1, "John Smith", 30, 175.0, 9000, 300.5));
+        dbManager.insertRecord(new FitnessRecord(2, "Jane Doe", 28, 150.5, 8500, 270.3));
+        System.out.println("Sample records saved to database.");
     }
 
-    // Validates integer input from the user with no range limit
+    // Input validation methods omitted for brevity, keep as is from previous code...
+
     private static int getValidatedInt(String prompt) {
         return getValidatedInt(prompt, Integer.MIN_VALUE, Integer.MAX_VALUE);
     }
 
-    // Validates integer input from the user within a specific range
     private static int getValidatedInt(String prompt, int min, int max) {
         while (true) {
             System.out.print(prompt);
             try {
-                int value = Integer.parseInt(scanner.nextLine().trim());
-                if (value >= min && value <= max) return value;
+                int val = Integer.parseInt(scanner.nextLine().trim());
+                if (val >= min && val <= max) return val;
                 System.out.println("Input must be between " + min + " and " + max + ".");
             } catch (NumberFormatException e) {
                 System.out.println("Invalid integer input.");
@@ -190,7 +153,6 @@ public class Main {
         }
     }
 
-    // Validates double (decimal) input from the user
     private static double getValidatedDouble(String prompt) {
         while (true) {
             System.out.print(prompt);
@@ -202,7 +164,6 @@ public class Main {
         }
     }
 
-    // Validates that user inputs a non-empty string
     private static String getValidatedString(String prompt) {
         while (true) {
             System.out.print(prompt);
