@@ -1,11 +1,55 @@
 # FitnessTracker
 
-A Java-based console application, the Fitness Tracker project was created in two stages as a component of the Software Development Life Cycle (SDLC) course.  Individual fitness data, such as name, age, weight, steps done, and calories burnt, may be managed by users of the system.  While Phase 2 concentrated on software testing using JUnit to ensure that the developed features performed properly, Phase 1's objective was to build a working menu system and fundamental logic for data operations.
+Phase 1 – Menu System and Core Logic
 
-The program was built with a fully interactive and validated menu. "Main.java" for application logic and menu flow, "FitnessRecord.java" for the data model. This menu allows users to perform essential CRUD operations: creating new fitness records, reading/displaying data, updating existing entries, and removing records. The application loops continuously until the user selects the exit option and does not accept invalid menu inputs. Records are displayed in an easily legible format when the option to show the data has been selected.  Every input area is checked to make sure no incorrect information is entered or results in the application crashing, including name, age, weight, steps, and calories.  Additionally, a custom feature that computes and shows the average number of steps taken by all users presently logged into the system was implemented.  Every function was effectively shown with appropriate structure and commentary.
+The initial phase focused on designing a working menu system and implementing the basic CRUD logic for managing fitness records.
 
-In Software Testing, a separate test class named "MainTest.java" was created using JUnit 5. This test suite includes unit tests to verify that fitness records can be added to a list, removed from the list, and updated correctly. It also confirms that the custom feature (average step calculation) performs accurate calculations. Additionally, the test suite includes functionality to simulate file loading from a text file, ensuring that fitness records are parsed and loaded properly into the system. Each test is isolated and uses a setup method to initialize test data before execution. Assertions are used to confirm the correctness of each feature. 
+The application was structured around:
 
-Phase 3 extended the application by introducing a graphical user interface (GUI), built with Java Swing in the file FitnessTrackerGUI.java. This GUI replaced the console-based menu with intuitive buttons, input fields, and visual displays. The layout was designed to be simple and clear, with buttons for each core function: load from file, display records, add new record, remove record, update existing record, calculate average steps, save to file, and exit. Each user action triggers corresponding logic, and all inputs continue to be validated for correctness. The FileManager.java class was added to modularize file operations, keeping the code organized and reusable. A sample dataset file named testdata.txt containing at least 20 records was included to demonstrate file reading functionality. The JAR file (FitnessTracker.jar) was updated to include all GUI features and is ready for demonstration.
+Main.java: the main application and menu controller.
+FitnessRecord.java: the data model class representing each fitness entry.
+Users can:
 
-Throughout the development process, proper comments were maintained across all files, adhering to the guidelines provided in the course. The final version of the project showcases a fully functioning and user-friendly fitness tracker that includes menu-driven and graphical interfaces, robust testing, and file management capabilities.
+Add, view, update, and delete fitness records.
+View all data in a readable format.
+Calculate the average number of steps across all records (custom feature).
+All inputs are validated (name, age, weight, steps, and calories) to prevent crashes or incorrect data entry. The console menu loops until the user chooses to exit and does not accept invalid options.
+
+Phase 2 – Unit Testing
+
+In Phase 2, unit testing was added using JUnit 5 in a separate class named MainTest.java.
+
+Tests included:
+
+Verifying that records can be added, removed, and updated.
+Ensuring the average steps calculation returns accurate results.
+Simulating file loading and checking data parsing behavior.
+Each test is isolated with setup methods and assertions to verify correct logic execution.
+
+Phase 3 – Graphical User Interface (GUI)
+
+Phase 3 introduced a fully functional GUI using Java Swing, replacing the console-based menu.
+
+FitnessTrackerGUI.java: contains all GUI elements and logic.
+FileManager.java: separates file operations from the main logic for modularity.
+Features of the GUI:
+
+Interactive buttons for each action (load, save, add, update, delete, calculate average).
+Clean layout and intuitive user experience.
+Input validation continues to ensure robust behavior.
+A sample data file (testdata.txt) with 20+ records is included for demonstration.
+The application was compiled into FitnessTracker.jar with GUI support.
+
+Phase 4 – Database Integration (SQLite)
+
+In the final phase, the application was upgraded to support persistent data storage via SQLite.
+
+FitnessDatabaseManager.java: encapsulates all SQL logic using JDBC (Java Database Connectivity).
+Main.java: updated to perform database CRUD operations using the manager class.
+Database Features:
+
+The user is prompted to specify the SQLite .db file, avoiding hardcoded paths.
+The database table (fitness_records) is created if it does not already exist.
+Users can perform all CRUD operations with data saved directly to the SQLite database.
+The custom feature (average steps calculation) is performed via SQL's AVG() function.
+Sample records are inserted and fetched to verify connectivity, and debug messages confirm successful operations. The application gracefully handles invalid inputs or connection issues. A properly configured database file (fitness.db) is included with the project submission.
