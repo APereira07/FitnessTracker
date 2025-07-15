@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="/Users/andrespereira/Downloads/fitness.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="997"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="FitnessRecords" custom_title="0" dock_id="4" table="4,14:mainFitnessRecords"/><dock_state state="000000ff00000000fd0000000100000002000001c30000021ffc0100000002fb000000160064006f0063006b00420072006f00770073006500310100000000000001c30000000000000000fb000000160064006f0063006b00420072006f00770073006500340100000000ffffffff0000010100ffffff000001c30000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings/></tab_browse><tab_sql><sql name="SQL 1">CREATE TABLE FitnessRecords (
+    id INTEGER PRIMARY KEY,
+    fullName TEXT NOT NULL,
+    age INTEGER,
+    weight REAL,
+    stepsToday INTEGER,
+    caloriesBurned REAL
+);
+
+INSERT INTO FitnessRecords VALUES (1, 'Alice Johnson', 28, 135.5, 10234, 450.5);
+INSERT INTO FitnessRecords VALUES (2, 'Bob Smith', 34, 180.2, 8560, 530.2);
+INSERT INTO FitnessRecords VALUES (3, 'Carol White', 41, 150.0, 7890, 400.0);
+INSERT INTO FitnessRecords VALUES (4, 'David Brown', 25, 165.3, 12000, 600.3);
+INSERT INTO FitnessRecords VALUES (5, 'Eve Davis', 30, 140.0, 9700, 480.1);
+INSERT INTO FitnessRecords VALUES (6, 'Frank Wilson', 38, 175.0, 8500, 520.0);
+INSERT INTO FitnessRecords VALUES (7, 'Grace Lee', 29, 130.2, 11000, 455.5);
+INSERT INTO FitnessRecords VALUES (8, 'Henry Young', 44, 190.0, 7000, 400.7);
+INSERT INTO FitnessRecords VALUES (9, 'Isabel King', 31, 145.5, 9500, 470.2);
+INSERT INTO FitnessRecords VALUES (10, 'Jack Scott', 27, 160.0, 10300, 540.0);
+INSERT INTO FitnessRecords VALUES (11, 'Kara Green', 35, 138.4, 9000, 460.5);
+INSERT INTO FitnessRecords VALUES (12, 'Liam Turner', 39, 182.3, 8800, 525.3);
+INSERT INTO FitnessRecords VALUES (13, 'Mia Adams', 26, 134.0, 10250, 455.0);
+INSERT INTO FitnessRecords VALUES (14, 'Noah Baker', 33, 170.0, 8700, 515.1);
+INSERT INTO FitnessRecords VALUES (15, 'Olivia Carter', 29, 142.7, 9800, 475.0);
+INSERT INTO FitnessRecords VALUES (16, 'Paul Evans', 41, 185.0, 7500, 430.0);
+INSERT INTO FitnessRecords VALUES (17, 'Quinn Foster', 28, 136.9, 10800, 460.8);
+INSERT INTO FitnessRecords VALUES (18, 'Rachel Gomez', 32, 140.0, 9200, 455.3);
+INSERT INTO FitnessRecords VALUES (19, 'Sam Harris', 37, 178.5, 8400, 510.2);
+INSERT INTO FitnessRecords VALUES (20, 'Tina Iverson', 30, 133.3, 11000, 470.7);
+</sql><current_tab id="0"/></tab_sql></sqlb_project>
