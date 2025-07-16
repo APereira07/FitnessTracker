@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"<Unnamed>","l":"FileManager"},{"p":"<Unnamed>","l":"FitnessDatabaseManager"},{"p":"<Unnamed>","l":"FitnessRecord"},{"p":"<Unnamed>","l":"FitnessTrackerGUI"},{"p":"<Unnamed>","l":"Main"}];updateSearchResults();
