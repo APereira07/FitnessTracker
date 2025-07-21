@@ -1,36 +1,37 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * FitnessTrackerGUI class builds a graphical user interface for
  * the Fitness Tracker app, providing CRUD operations and user interaction.
+ * Now fully integrated with SQLite database via FitnessDatabaseManager.
  */
 public class FitnessTrackerGUI extends JFrame {
-    private List<FitnessRecord> records;  // List to hold fitness records
+    private FitnessDatabaseManager dbManager;    // Database manager for CRUD operations
+    private List<FitnessRecord> records;         // Cached list of fitness records
 
-    private DefaultListModel<String> listModel; // Model for JList to display records
-    private JList<String> recordJList;           // JList UI component to show records
+    private DefaultListModel<String> listModel;  // Model for JList to display records
+    private JList<String> recordJList;            // JList UI component to show records
+
     private JTextField idField, nameField, ageField, weightField, stepsField, caloriesField;
-    private JTextField filenameField;            // Input for file name
-    private JLabel statusLabel;                   // Status message display
+    private JTextField filenameField;             // Input for DB filename (e.g., fitness.db)
+    private JLabel statusLabel;                    // Status message display
 
     /**
      * Constructor sets up the GUI components and event handlers.
+     * Initializes FitnessDatabaseManager with the DB filename entered by the user.
      */
     public FitnessTrackerGUI() {
-        records = new ArrayList<>();
         setTitle("Fitness Tracker");
         setSize(700, 450);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // Create panel for input fields
+        // Panel for input fields
         JPanel inputPanel = new JPanel(new GridLayout(7, 2, 5, 5));
-
         inputPanel.add(new JLabel("ID:"));
         idField = new JTextField();
         inputPanel.add(idField);
@@ -55,13 +56,13 @@ public class FitnessTrackerGUI extends JFrame {
         caloriesField = new JTextField();
         inputPanel.add(caloriesField);
 
-        inputPanel.add(new JLabel("Filename (for load/save):"));
-        filenameField = new JTextField();
+        inputPanel.add(new JLabel("Database Filename (e.g., fitness.db):"));
+        filenameField = new JTextField("fitness.db");  // default DB filename
         inputPanel.add(filenameField);
 
         add(inputPanel, BorderLayout.WEST);
 
-        // Create buttons panel
+        // Buttons panel
         JPanel buttonPanel = new JPanel(new GridLayout(8, 1, 5, 5));
         JButton loadButton = new JButton("Load Data");
         JButton displayButton = new JButton("Display Records");
@@ -83,7 +84,7 @@ public class FitnessTrackerGUI extends JFrame {
 
         add(buttonPanel, BorderLayout.EAST);
 
-        // Create list panel to display records
+        // List panel to display records
         listModel = new DefaultListModel<>();
         recordJList = new JList<>(listModel);
         JScrollPane scrollPane = new JScrollPane(recordJList);
@@ -106,36 +107,47 @@ public class FitnessTrackerGUI extends JFrame {
         setVisible(true);
     }
 
-    // Load data from file specified in filenameField
+    /**
+     * Initializes database manager and loads all records from the database.
+     * Uses the filename from filenameField to connect.
+     */
     private void loadData() {
-        String filename = filenameField.getText().trim();
-        if (filename.isEmpty()) {
-            statusLabel.setText("Please enter a filename.");
+        String dbFileName = filenameField.getText().trim();
+        if (dbFileName.isEmpty()) {
+            statusLabel.setText("Please enter a database filename.");
             return;
         }
-        try {
-            records = FileManager.loadFromFile(filename);
-            statusLabel.setText("Data loaded successfully from " + filename);
-            displayRecords();
-        } catch (Exception e) {
-            statusLabel.setText("Error loading file: " + e.getMessage());
-        }
+
+        // Initialize the database manager with the given file
+        dbManager = new FitnessDatabaseManager(dbFileName);
+
+        // Fetch all records from DB
+        records = dbManager.getAllRecords();
+
+        statusLabel.setText("Data loaded successfully from database: " + dbFileName);
+        displayRecords();
     }
 
-    // Display all records in the list UI
+    /**
+     * Displays all loaded records in the JList UI.
+     */
     private void displayRecords() {
         listModel.clear();
-        if (records.isEmpty()) {
+        if (records == null || records.isEmpty()) {
             listModel.addElement("No records to display.");
+            statusLabel.setText("No records found.");
         } else {
             for (FitnessRecord r : records) {
                 listModel.addElement(r.toString());
             }
+            statusLabel.setText("Displaying " + records.size() + " records.");
         }
-        statusLabel.setText("Displaying " + records.size() + " records.");
     }
 
-    // Add a new record from input fields with validation
+    /**
+     * Adds a new record to the local list (does NOT immediately save to DB).
+     * Input validation is performed.
+     */
     private void addRecord() {
         try {
             int id = Integer.parseInt(idField.getText().trim());
@@ -150,22 +162,34 @@ public class FitnessTrackerGUI extends JFrame {
                 return;
             }
 
+            // Check for duplicate ID
+            for (FitnessRecord r : records) {
+                if (r.getId() == id) {
+                    statusLabel.setText("ID already exists. Use Update instead.");
+                    return;
+                }
+            }
+
             FitnessRecord newRecord = new FitnessRecord(id, name, age, weight, steps, calories);
             records.add(newRecord);
-            statusLabel.setText("Record added.");
+            statusLabel.setText("Record added locally. Remember to save changes.");
             displayRecords();
+
         } catch (NumberFormatException e) {
             statusLabel.setText("Invalid input. Please enter proper data types.");
         }
     }
 
-    // Remove record by ID from input field
+    /**
+     * Removes a record from the local list by ID.
+     * Does NOT immediately save changes to DB.
+     */
     private void removeRecord() {
         try {
             int id = Integer.parseInt(idField.getText().trim());
             boolean removed = records.removeIf(r -> r.getId() == id);
             if (removed) {
-                statusLabel.setText("Record removed.");
+                statusLabel.setText("Record removed locally. Remember to save changes.");
             } else {
                 statusLabel.setText("Record not found.");
             }
@@ -175,7 +199,10 @@ public class FitnessTrackerGUI extends JFrame {
         }
     }
 
-    // Update a record identified by ID with values from input fields
+    /**
+     * Updates a record in the local list identified by ID.
+     * Does NOT immediately save changes to DB.
+     */
     private void updateRecord() {
         try {
             int id = Integer.parseInt(idField.getText().trim());
@@ -198,7 +225,7 @@ public class FitnessTrackerGUI extends JFrame {
                     r.setStepsToday(steps);
                     r.setCaloriesBurned(calories);
 
-                    statusLabel.setText("Record updated.");
+                    statusLabel.setText("Record updated locally. Remember to save changes.");
                     displayRecords();
                     return;
                 }
@@ -209,9 +236,12 @@ public class FitnessTrackerGUI extends JFrame {
         }
     }
 
-    // Calculate and display average steps
+    /**
+     * Calculates average steps from records currently loaded in memory
+     * and displays the result.
+     */
     private void calculateAverageSteps() {
-        if (records.isEmpty()) {
+        if (records == null || records.isEmpty()) {
             statusLabel.setText("No records to calculate.");
             return;
         }
@@ -219,22 +249,27 @@ public class FitnessTrackerGUI extends JFrame {
         statusLabel.setText(String.format("Average Steps: %.2f", avg));
     }
 
-    // Save current records to file specified in filenameField
+    /**
+     * Saves all records from the local list to the database in a batch operation.
+     */
     private void saveData() {
-        String filename = filenameField.getText().trim();
-        if (filename.isEmpty()) {
-            statusLabel.setText("Please enter a filename.");
+        if (dbManager == null) {
+            statusLabel.setText("Please load data from a database first.");
             return;
         }
-        try {
-            FileManager.saveToFile(filename, records);
-            statusLabel.setText("Data saved successfully to " + filename);
-        } catch (Exception e) {
-            statusLabel.setText("Error saving file: " + e.getMessage());
+
+        if (records == null || records.isEmpty()) {
+            statusLabel.setText("No records to save.");
+            return;
         }
+
+        dbManager.saveAllRecords(records);
+        statusLabel.setText("All records saved successfully to database.");
     }
 
-    // Main method to start the GUI application
+    /**
+     * Main method to start the GUI application.
+     */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(FitnessTrackerGUI::new);
     }

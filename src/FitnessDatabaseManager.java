@@ -17,17 +17,13 @@ public class FitnessDatabaseManager {
      * @param dbFileName Filename of the SQLite database, e.g., "fitness.db"
      */
     public FitnessDatabaseManager(String dbFileName) {
-        // Build the JDBC URL string for SQLite connection
         this.dbUrl = "jdbc:sqlite:" + dbFileName;
-
-        // Create the FitnessRecords table if it does not already exist
         createTableIfNotExists();
     }
 
     /**
      * Creates the FitnessRecords table with the appropriate schema
      * if it does not already exist in the database.
-     * The table stores ID, full name, age, weight, steps taken today, and calories burned.
      */
     private void createTableIfNotExists() {
         String sql = """
@@ -41,10 +37,8 @@ public class FitnessDatabaseManager {
             );
             """;
 
-        // Use try-with-resources to ensure connection and statement are closed
         try (Connection conn = DriverManager.getConnection(dbUrl);
              Statement stmt = conn.createStatement()) {
-            // Execute the SQL statement to create the table if needed
             stmt.execute(sql);
         } catch (SQLException e) {
             System.out.println("Error creating table: " + e.getMessage());
@@ -53,7 +47,6 @@ public class FitnessDatabaseManager {
 
     /**
      * Retrieves all fitness records from the FitnessRecords table.
-     * Each row is converted into a FitnessRecord object and collected into a list.
      *
      * @return List of FitnessRecord objects representing all records; empty list if none found
      */
@@ -65,9 +58,7 @@ public class FitnessDatabaseManager {
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
-            // Iterate through each row in the result set
             while (rs.next()) {
-                // Create FitnessRecord object from current row data
                 FitnessRecord record = new FitnessRecord(
                         rs.getInt("id"),
                         rs.getString("fullName"),
@@ -76,11 +67,9 @@ public class FitnessDatabaseManager {
                         rs.getInt("stepsToday"),
                         rs.getDouble("caloriesBurned")
                 );
-                // Add the record to the list
                 records.add(record);
             }
 
-            // Debug output showing how many records were fetched
             System.out.println(records.size() + " records fetched from the database.");
 
         } catch (SQLException e) {
@@ -100,7 +89,6 @@ public class FitnessDatabaseManager {
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            // Set the parameters of the prepared statement based on the record fields
             pstmt.setInt(1, record.getId());
             pstmt.setString(2, record.getFullName());
             pstmt.setInt(3, record.getAge());
@@ -108,7 +96,6 @@ public class FitnessDatabaseManager {
             pstmt.setInt(5, record.getStepsToday());
             pstmt.setDouble(6, record.getCaloriesBurned());
 
-            // Execute the insertion
             pstmt.executeUpdate();
 
         } catch (SQLException e) {
@@ -127,13 +114,10 @@ public class FitnessDatabaseManager {
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            // Set the ID parameter for the delete statement
             pstmt.setInt(1, id);
 
-            // Execute the deletion and check if any row was affected
             int affected = pstmt.executeUpdate();
 
-            // Inform if no matching record was found
             if (affected == 0) {
                 System.out.println("No record found with ID " + id);
             }
@@ -145,7 +129,6 @@ public class FitnessDatabaseManager {
 
     /**
      * Updates an existing fitness record in the database.
-     * All fields except the ID can be updated.
      *
      * @param record FitnessRecord object containing updated data; ID specifies the record to update.
      */
@@ -163,7 +146,6 @@ public class FitnessDatabaseManager {
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            // Set parameters to update values in the record
             pstmt.setString(1, record.getFullName());
             pstmt.setInt(2, record.getAge());
             pstmt.setDouble(3, record.getWeight());
@@ -171,7 +153,6 @@ public class FitnessDatabaseManager {
             pstmt.setDouble(5, record.getCaloriesBurned());
             pstmt.setInt(6, record.getId());
 
-            // Execute the update and check if any record was updated
             int affected = pstmt.executeUpdate();
             if (affected == 0) {
                 System.out.println("No record found with ID " + record.getId());
@@ -179,6 +160,44 @@ public class FitnessDatabaseManager {
 
         } catch (SQLException e) {
             System.out.println("Error updating record: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Saves all fitness records to the database by deleting existing records
+     * and inserting the provided list of records.
+     *
+     * @param records List of FitnessRecord objects to save.
+     */
+    public void saveAllRecords(List<FitnessRecord> records) {
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             Statement stmt = conn.createStatement()) {
+            // Start transaction
+            conn.setAutoCommit(false);
+
+            // Delete all existing records
+            stmt.executeUpdate("DELETE FROM FitnessRecords");
+
+            // Prepare insert statement
+            String sql = "INSERT INTO FitnessRecords (id, fullName, age, weight, stepsToday, caloriesBurned) VALUES (?, ?, ?, ?, ?, ?)";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                // Batch insert all records
+                for (FitnessRecord r : records) {
+                    pstmt.setInt(1, r.getId());
+                    pstmt.setString(2, r.getFullName());
+                    pstmt.setInt(3, r.getAge());
+                    pstmt.setDouble(4, r.getWeight());
+                    pstmt.setInt(5, r.getStepsToday());
+                    pstmt.setDouble(6, r.getCaloriesBurned());
+                    pstmt.addBatch();
+                }
+                pstmt.executeBatch();
+            }
+
+            // Commit transaction
+            conn.commit();
+        } catch (SQLException e) {
+            System.out.println("Error saving all records: " + e.getMessage());
         }
     }
 
@@ -195,7 +214,6 @@ public class FitnessDatabaseManager {
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
-            // If a result is returned, get the average steps value
             if (rs.next()) {
                 avgSteps = rs.getDouble("avgSteps");
             }
